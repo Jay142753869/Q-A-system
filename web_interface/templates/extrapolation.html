@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}知识图谱问答系统 - 外推问答{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <!-- 外推问答卡片 -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <h3>外推问答 - 未来关系预测</h3>
+            </div>
+            <div class="card-body">
+                <!-- 错误信息展示 -->
+                {% if error %}
+                <div class="error-message">
+                    <strong>错误：</strong>{{ error }}
+                </div>
+                {% endif %}
+                
+                <!-- 使用说明 -->
+                <div class="info-message">
+                    <strong>使用说明：</strong>
+                    <p>外推问答用于预测实体在未来可能建立的关系。系统将分析实体的历史行为模式和语义相似性，
+                    预测该实体在指定时间范围内可能与其他实体建立的关系。</p>
+                </div>
+                
+                <!-- 查询表单 -->
+                <form method="POST" id="extrapolation-form">
+                    <div class="mb-4">
+                        <label for="entity" class="form-label">实体</label>
+                        <input type="text" class="form-control" id="entity" name="entity" 
+                               placeholder="请输入实体名称（例如：苹果公司、微软）" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="future_years" class="form-label">预测未来年数</label>
+                        <div class="input-group">
+                            <input type="range" class="form-range" min="1" max="10" value="5" 
+                                   id="future_years_range" oninput="updateYearValue(this.value)">
+                            <span class="input-group-text" id="future_years_value">5 年</span>
+                            <input type="hidden" id="future_years" name="future_years" value="5">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="top_k" class="form-label">返回结果数量</label>
+                        <select class="form-control" id="top_k" name="top_k">
+                            <option value="3">3</option>
+                            <option value="5" selected>5</option>
+                            <option value="10">10</option>
+                        </select>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search"></i> 预测
+                        </button>
+                        <button type="reset" class="btn btn-secondary">
+                            <i class="bi bi-arrow-counterclockwise"></i> 重置
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- 示例查询卡片 -->
+        <div class="card mt-5 fade-in">
+            <div class="card-header">
+                <h4>示例查询</h4>
+            </div>
+            <div class="card-body">
+                <div class="accordion" id="examplesAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#example1">
+                                示例1：预测科技公司未来收购
+                            </button>
+                        </h2>
+                        <div id="example1" class="accordion-collapse collapse show">
+                            <div class="accordion-body">
+                                <p><strong>实体：</strong>苹果公司</p>
+                                <p><strong>预测年数：</strong>5年</p>
+                                <p><strong>说明：</strong>预测苹果公司在未来5年内可能收购的公司</p>
+                                <button class="btn btn-sm btn-outline-primary apply-example" 
+                                        data-entity="苹果公司" data-years="5">应用此示例</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#example2">
+                                示例2：预测科技巨头合作关系
+                            </button>
+                        </h2>
+                        <div id="example2" class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                <p><strong>实体：</strong>微软</p>
+                                <p><strong>预测年数：</strong>3年</p>
+                                <p><strong>说明：</strong>预测微软在未来3年内可能建立的合作关系</p>
+                                <button class="btn btn-sm btn-outline-primary apply-example" 
+                                        data-entity="微软" data-years="3">应用此示例</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#example3">
+                                示例3：预测初创公司发展
+                            </button>
+                        </h2>
+                        <div id="example3" class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                <p><strong>实体：</strong>特斯拉</p>
+                                <p><strong>预测年数：</strong>7年</p>
+                                <p><strong>说明：</strong>预测特斯拉在未来7年内可能建立的各类关系</p>
+                                <button class="btn btn-sm btn-outline-primary apply-example" 
+                                        data-entity="特斯拉" data-years="7">应用此示例</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 预测原理卡片 -->
+        <div class="card mt-5 fade-in">
+            <div class="card-header">
+                <h4>预测原理</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5 class="text-primary">时间感知模型</h5>
+                        <p>系统使用时间感知的嵌入模型，考虑实体历史行为的时间特性。近期的行为数据权重更高，
+                        这有助于捕捉实体最新的发展趋势。</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h5 class="text-primary">行为模式分析</h5>
+                        <p>通过分析实体的历史行为模式，系统能够识别实体的偏好和倾向，例如某公司更倾向于收购哪类企业，
+                        或者与哪些类型的实体建立合作关系。</p>
+                    </div>
+                </div>
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <h5 class="text-primary">语义相似性</h5>
+                        <p>基于BERT的语义嵌入，系统能够找到与历史目标实体语义相似的其他实体，
+                        这些实体可能是未来关系的潜在目标。</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h5 class="text-primary">综合评分机制</h5>
+                        <p>系统采用综合评分机制，将多种预测因素结合起来，生成最终的预测结果和置信度评分。
+                        这确保了预测结果的多样性和可靠性。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 表单验证
+        const form = document.getElementById('extrapolation-form');
+        form.addEventListener('submit', function(event) {
+            const entity = document.getElementById('entity').value.trim();
+            if (!entity) {
+                event.preventDefault();
+                alert('请输入实体名称');
+            }
+        });
+        
+        // 更新年数滑块显示
+        window.updateYearValue = function(value) {
+            document.getElementById('future_years_value').textContent = value + ' 年';
+            document.getElementById('future_years').value = value;
+        };
+        
+        // 示例应用功能
+        const exampleButtons = document.querySelectorAll('.apply-example');
+        exampleButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const entity = this.dataset.entity || '';
+                const years = this.dataset.years || '5';
+                
+                document.getElementById('entity').value = entity;
+                document.getElementById('future_years_range').value = years;
+                updateYearValue(years);
+            });
+        });
+    });
+</script>
+{% endblock %}

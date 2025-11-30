@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block title %}知识图谱问答系统 - 内推问答结果{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <!-- 查询结果卡片 -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <h3>内推问答结果</h3>
+            </div>
+            <div class="card-body">
+                <!-- 查询条件显示 -->
+                <div class="bg-light p-3 rounded mb-4">
+                    <h5>查询条件</h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <strong>实体1：</strong>{{ entity1 if entity1 else "未提供" }}
+                        </div>
+                        <div class="col-md-4">
+                            <strong>关系：</strong>{{ relationship if relationship else "未提供" }}
+                        </div>
+                        <div class="col-md-4">
+                            <strong>实体2：</strong>{{ entity2 if entity2 else "未提供" }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 结果展示 -->
+                {% if results %}
+                <h5>预测结果（共 {{ results|length }} 条）</h5>
+                
+                {% for result in results %}
+                    {% if result.error %}
+                        <!-- 错误信息 -->
+                        <div class="error-message mb-3">
+                            <strong>{{ result.error }}</strong>
+                            {% if result.suggestion %}
+                                <p>{{ result.suggestion }}</p>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <!-- 预测结果卡片 -->
+                        <div class="result-card mb-4">
+                            <!-- 结果内容 -->
+                            <div class="result-content">
+                                {% if entity1 and entity2 and not relationship %}
+                                    <!-- 预测关系模式 -->
+                                    <p class="result-text">
+                                        <strong>{{ entity1 }}</strong> 与 <strong>{{ entity2 }}</strong> 之间可能存在的关系是：
+                                        <span class="text-primary font-bold">{{ result.relationship }}</span>
+                                    </p>
+                                {% elif entity1 and relationship and not entity2 %}
+                                    <!-- 预测目标实体模式 -->
+                                    <p class="result-text">
+                                        <strong>{{ entity1 }}</strong> 可能 <strong>{{ relationship }}</strong> 的实体是：
+                                        <span class="text-primary font-bold">{{ result.target_entity }}</span>
+                                    </p>
+                                {% elif relationship and entity2 and not entity1 %}
+                                    <!-- 预测源实体模式 -->
+                                    <p class="result-text">
+                                        可能 <strong>{{ relationship }}</strong> <strong>{{ entity2 }}</strong> 的实体是：
+                                        <span class="text-primary font-bold">{{ result.source_entity }}</span>
+                                    </p>
+                                {% else %}
+                                    <!-- 通用显示 -->
+                                    <p class="result-text">
+                                        {% if result.relationship %}
+                                            关系: <span class="text-primary font-bold">{{ result.relationship }}</span><br>
+                                        {% endif %}
+                                        {% if result.source_entity %}
+                                            源实体: <span class="text-primary font-bold">{{ result.source_entity }}</span><br>
+                                        {% endif %}
+                                        {% if result.target_entity %}
+                                            目标实体: <span class="text-primary font-bold">{{ result.target_entity }}</span>
+                                        {% endif %}
+                                    </p>
+                                {% endif %}
+                                
+                                <!-- 置信度展示 -->
+                                <div class="mt-2">
+                                    <div class="d-flex justify-content-between">
+                                        <span>置信度：</span>
+                                        <span class="font-bold">{{ "%.2f"|format(result.confidence * 100) }}%</span>
+                                    </div>
+                                    <div class="confidence-bar">
+                                        {% set confidence_class = "high-confidence" if result.confidence >= 0.7 else "medium-confidence" if result.confidence >= 0.4 else "low-confidence" %}
+                                        <div class="confidence-fill {{ confidence_class }}" style="width: {{ result.confidence * 100 }}%"></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 预测理由 -->
+                                {% if result.reason %}
+                                    <div class="mt-3">
+                                        <strong>预测依据：</strong>
+                                        <p class="text-muted">{{ result.reason }}</p>
+                                    </div>
+                                {% endif %}
+                                
+                                <!-- 历史支持 -->
+                                {% if result.supporting_evidence %}
+                                    <div class="mt-3">
+                                        <strong>支持证据：</strong>
+                                        <ul class="list-group list-group-flush">
+                                            {% for evidence in result.supporting_evidence %}
+                                                <li class="list-group-item bg-transparent text-sm">• {{ evidence }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+                
+                <!-- 没有结果时 -->
+                {% else %}
+                <div class="info-message">
+                    <strong>未找到相关结果</strong>
+                    <p>请尝试调整查询条件或使用不同的实体名称</p>
+                </div>
+                {% endif %}
+                
+                <!-- 操作按钮 -->
+                <div class="mt-4 d-grid gap-2">
+                    <a href="/interpolation" class="btn btn-primary">
+                        <i class="bi bi-arrow-left"></i> 返回内推问答
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 结果解读卡片 -->
+        <div class="card mt-5 fade-in">
+            <div class="card-header">
+                <h4>结果解读</h4>
+            </div>
+            <div class="card-body">
+                <div class="accordion" id="interpretationAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#interpretation1">
+                                置信度说明
+                            </button>
+                        </h2>
+                        <div id="interpretation1" class="accordion-collapse collapse show">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li><span class="badge bg-success">高置信度</span> (≥70%): 预测结果非常可靠，有较强的证据支持</li>
+                                    <li><span class="badge bg-warning">中置信度</span> (40%-70%): 预测结果较为可靠，但建议结合其他信息判断</li>
+                                    <li><span class="badge bg-danger">低置信度</span> (<40%): 预测结果仅供参考，需要更多证据支持</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#interpretation2">
+                                如何提高预测准确性
+                            </button>
+                        </h2>
+                        <div id="interpretation2" class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li>确保输入的实体名称准确无误</li>
+                                    <li>使用实体的标准名称（如公司全名）</li>
+                                    <li>尝试不同的关系表述方式</li>
+                                    <li>结合多个预测结果进行综合分析</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#interpretation3">
+                                预测结果的局限性
+                            </button>
+                        </h2>
+                        <div id="interpretation3" class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li>预测基于现有知识图谱数据，可能不包含最新信息</li>
+                                    <li>复杂的关系可能难以准确预测</li>
+                                    <li>置信度较低的结果应谨慎对待</li>
+                                    <li>系统无法考虑未在知识图谱中体现的外部因素</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 为置信度条添加动画效果
+        const confidenceBars = document.querySelectorAll('.confidence-fill');
+        confidenceBars.forEach((bar, index) => {
+            setTimeout(() => {
+                const width = bar.style.width;
+                bar.style.width = '0';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 100);
+            }, 300 * index);
+        });
+        
+        // 为结果卡片添加淡入效果
+        const resultCards = document.querySelectorAll('.result-card');
+        resultCards.forEach((card, index) => {
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 200 * index);
+        });
+    });
+</script>
+{% endblock %}

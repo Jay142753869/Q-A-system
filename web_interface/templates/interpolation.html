@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}知识图谱问答系统 - 内推问答{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <!-- 内推问答卡片 -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <h3>内推问答 - 知识图谱补全</h3>
+            </div>
+            <div class="card-body">
+                <!-- 错误信息展示 -->
+                {% if error %}
+                <div class="error-message">
+                    <strong>错误：</strong>{{ error }}
+                </div>
+                {% endif %}
+                
+                <!-- 使用说明 -->
+                <div class="info-message">
+                    <strong>使用说明：</strong>
+                    <p>内推问答用于知识图谱补全，支持三种查询模式：</p>
+                    <ol>
+                        <li><strong>已知两个实体，预测关系：</strong>只填写实体1和实体2</li>
+                        <li><strong>已知一个实体和关系，预测另一个实体：</strong>填写实体1和关系</li>
+                        <li><strong>已知关系和目标实体，预测源实体：</strong>填写关系和实体2</li>
+                    </ol>
+                </div>
+                
+                <!-- 查询表单 -->
+                <form method="POST" id="interpolation-form">
+                    <div class="mb-4">
+                        <label for="entity1" class="form-label">实体1</label>
+                        <input type="text" class="form-control" id="entity1" name="entity1" 
+                               placeholder="请输入第一个实体（例如：苹果公司）">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="relationship" class="form-label">关系</label>
+                        <input type="text" class="form-control" id="relationship" name="relationship" 
+                               placeholder="请输入关系类型（例如：生产）">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="entity2" class="form-label">实体2</label>
+                        <input type="text" class="form-control" id="entity2" name="entity2" 
+                               placeholder="请输入第二个实体（例如：iPhone）">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="top_k" class="form-label">返回结果数量</label>
+                        <select class="form-control" id="top_k" name="top_k">
+                            <option value="3">3</option>
+                            <option value="5" selected>5</option>
+                            <option value="10">10</option>
+                        </select>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search"></i> 查询
+                        </button>
+                        <button type="reset" class="btn btn-secondary">
+                            <i class="bi bi-arrow-counterclockwise"></i> 重置
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- 示例查询卡片 -->
+        <div class="card mt-5 fade-in">
+            <div class="card-header">
+                <h4>示例查询</h4>
+            </div>
+            <div class="card-body">
+                <div class="accordion" id="examplesAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#example1">
+                                示例1：预测两个实体间的关系
+                            </button>
+                        </h2>
+                        <div id="example1" class="accordion-collapse collapse show">
+                            <div class="accordion-body">
+                                <p><strong>实体1：</strong>苹果公司</p>
+                                <p><strong>实体2：</strong>iPhone</p>
+                                <p><strong>说明：</strong>系统将预测苹果公司和iPhone之间可能存在的关系</p>
+                                <button class="btn btn-sm btn-outline-primary apply-example" 
+                                        data-entity1="苹果公司" data-entity2="iPhone">应用此示例</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#example2">
+                                示例2：预测关系的目标实体
+                            </button>
+                        </h2>
+                        <div id="example2" class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                <p><strong>实体1：</strong>微软</p>
+                                <p><strong>关系：</strong>收购</p>
+                                <p><strong>说明：</strong>系统将预测微软可能收购的公司</p>
+                                <button class="btn btn-sm btn-outline-primary apply-example" 
+                                        data-entity1="微软" data-relationship="收购">应用此示例</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#example3">
+                                示例3：预测关系的源实体
+                            </button>
+                        </h2>
+                        <div id="example3" class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                <p><strong>关系：</strong>创立</p>
+                                <p><strong>实体2：</strong>特斯拉</p>
+                                <p><strong>说明：</strong>系统将预测创立特斯拉的人</p>
+                                <button class="btn btn-sm btn-outline-primary apply-example" 
+                                        data-relationship="创立" data-entity2="特斯拉">应用此示例</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 常见问题卡片 -->
+        <div class="card mt-5 fade-in">
+            <div class="card-header">
+                <h4>常见问题</h4>
+            </div>
+            <div class="card-body">
+                <ul class="list-group">
+                    <li class="list-group-item">
+                        <strong>问：为什么我的查询没有结果？</strong>
+                        <p>答：可能是因为实体名称不存在于知识图谱中，或者实体间确实不存在关系。请尝试使用不同的实体名称或检查拼写。</p>
+                    </li>
+                    <li class="list-group-item">
+                        <strong>问：预测结果的置信度是什么意思？</strong>
+                        <p>答：置信度表示预测结果的可靠性，范围从0到1。置信度越高，结果越可靠。</p>
+                    </li>
+                    <li class="list-group-item">
+                        <strong>问：可以同时填写所有字段吗？</strong>
+                        <p>答：不建议这样做。系统会根据您填写的字段组合自动选择查询模式。</p>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 表单验证
+        const form = document.getElementById('interpolation-form');
+        form.addEventListener('submit', function(event) {
+            const entity1 = document.getElementById('entity1').value.trim();
+            const relationship = document.getElementById('relationship').value.trim();
+            const entity2 = document.getElementById('entity2').value.trim();
+            
+            // 确保至少填写了两个字段（三种组合之一）
+            const hasEntity1AndEntity2 = entity1 && entity2 && !relationship;
+            const hasEntity1AndRel = entity1 && relationship && !entity2;
+            const hasRelAndEntity2 = relationship && entity2 && !entity1;
+            
+            if (!(hasEntity1AndEntity2 || hasEntity1AndRel || hasRelAndEntity2)) {
+                event.preventDefault();
+                alert('请填写以下组合之一：\n1. 实体1和实体2\n2. 实体1和关系\n3. 关系和实体2');
+            }
+        });
+        
+        // 示例应用功能
+        const exampleButtons = document.querySelectorAll('.apply-example');
+        exampleButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const entity1 = this.dataset.entity1 || '';
+                const relationship = this.dataset.relationship || '';
+                const entity2 = this.dataset.entity2 || '';
+                
+                document.getElementById('entity1').value = entity1;
+                document.getElementById('relationship').value = relationship;
+                document.getElementById('entity2').value = entity2;
+            });
+        });
+    });
+</script>
+{% endblock %}

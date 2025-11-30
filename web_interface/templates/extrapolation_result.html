@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}知识图谱问答系统 - 外推预测结果{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <!-- 查询信息卡片 -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <h3>预测信息</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>查询实体：</strong> {{ input_data.entity }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>预测时间范围：</strong> 未来 {{ input_data.future_years }} 年</p>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <a href="{{ url_for('extrapolation') }}" class="btn btn-secondary btn-sm">
+                        <i class="bi bi-arrow-left"></i> 返回重新查询
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 时间线预测卡片 -->
+        <div class="card mt-5 fade-in">
+            <div class="card-header">
+                <h3>时间线预测结果</h3>
+            </div>
+            <div class="card-body">
+                {% if predictions_by_year %}
+                <!-- 时间轴预测 -->
+                <div class="timeline">
+                    {% for year, predictions in predictions_by_year.items() %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h4 class="timeline-year">{{ year }}年</h4>
+                            <div class="timeline-predictions">
+                                {% for pred in predictions %}
+                                <div class="prediction-card" data-confidence="{{ pred.confidence }}">
+                                    <div class="prediction-header">
+                                        <span class="relationship-type">{{ pred.relationship_type }}</span>
+                                        <span class="confidence-badge">置信度: {{ "%.2f"|format(pred.confidence * 100) }}%</span>
+                                    </div>
+                                    <div class="prediction-body">
+                                        <div class="prediction-entities">
+                                            <span class="entity-source">{{ pred.source_entity }}</span>
+                                            <span class="predicate">→</span>
+                                            <span class="entity-target">{{ pred.target_entity }}</span>
+                                        </div>
+                                        {% if pred.evidence %}
+                                        <div class="prediction-evidence">
+                                            <strong>支持依据：</strong>
+                                            <ul>
+                                                {% for evidence in pred.evidence %}
+                                                <li>{{ evidence }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center">
+                    <p class="text-muted">暂无预测结果</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- 关系类型分布卡片 -->
+        <div class="card mt-5 fade-in">
+            <div class="card-header">
+                <h3>预测关系类型分布</h3>
+            </div>
+            <div class="card-body">
+                {% if relationship_stats %}
+                <div class="chart-container">
+                    <canvas id="relationshipChart"></canvas>
+                </div>
+                {% else %}
+                <div class="text-center">
+                    <p class="text-muted">暂无数据</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- 结果解读卡片 -->
+        <div class="card mt-5 fade-in">
+            <div class="card-header">
+                <h3>预测结果解读</h3>
+            </div>
+            <div class="card-body">
+                <div class="accordion" id="interpretationAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#generalInsight">
+                                整体趋势洞察
+                            </button>
+                        </h2>
+                        <div id="generalInsight" class="accordion-collapse collapse show">
+                            <div class="accordion-body">
+                                {% if general_insights %}
+                                <p>{{ general_insights }}</p>
+                                {% else %}
+                                <p>基于您查询的实体和预测时间范围，系统分析了该实体的历史行为模式和当前市场趋势，
+                                为您提供了未来可能发生的关系预测。这些预测基于多种因素，包括实体的历史行为、语义相似性、
+                                市场趋势等，旨在为您提供有价值的决策参考信息。</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#confidenceExplain">
+                                置信度说明
+                            </button>
+                        </h2>
+                        <div id="confidenceExplain" class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                <p>系统为每个预测结果提供了置信度评分，反映了该预测的可靠程度：</p>
+                                <ul>
+                                    <li><strong>高置信度（70%-100%）：</strong>基于充足的历史数据和明确的行为模式，预测结果较为可靠</li>
+                                    <li><strong>中等置信度（40%-70%）：</strong>有一定的历史依据支持，但可能存在不确定性</li>
+                                    <li><strong>低置信度（10%-40%）：</strong>预测结果基于有限的数据或复杂多变的因素，仅供参考</li>
+                                </ul>
+                                <p>请注意，即使是高置信度的预测也不能保证一定会发生，市场环境变化可能导致预测结果出现偏差。</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#usageSuggestions">
+                                使用建议
+                            </button>
+                        </h2>
+                        <div id="usageSuggestions" class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li>将预测结果作为决策参考，结合其他市场信息和专业判断</li>
+                                    <li>关注高置信度的预测结果，这些通常有更强的历史数据支持</li>
+                                    <li>定期更新查询，以获取最新的预测结果</li>
+                                    <li>对于关键决策，建议进一步研究相关实体的最新动态</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 关系类型分布图表
+        {% if relationship_stats %}
+        const ctx = document.getElementById('relationshipChart').getContext('2d');
+        const relationshipChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ relationship_stats.labels|tojson }},
+                datasets: [{
+                    label: '预测次数',
+                    data: {{ relationship_stats.data|tojson }},
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.6)',
+                        'rgba(54, 162, 235, 0.6)',
+                        'rgba(255, 206, 86, 0.6)',
+                        'rgba(75, 192, 192, 0.6)',
+                        'rgba(153, 102, 255, 0.6)',
+                        'rgba(255, 159, 64, 0.6)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+        {% endif %}
+        
+        // 为预测卡片添加置信度相关样式
+        const predictionCards = document.querySelectorAll('.prediction-card');
+        predictionCards.forEach(card => {
+            const confidence = parseFloat(card.dataset.confidence);
+            let confidenceClass = 'confidence-low';
+            
+            if (confidence >= 0.7) {
+                confidenceClass = 'confidence-high';
+            } else if (confidence >= 0.4) {
+                confidenceClass = 'confidence-medium';
+            }
+            
+            card.classList.add(confidenceClass);
+        });
+    });
+</script>
+{% endblock %}

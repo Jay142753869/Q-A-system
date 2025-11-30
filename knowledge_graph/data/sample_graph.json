@@ -1,0 +1,217 @@
+{
+  "nodes": [
+    {
+      "label": "Company",
+      "name": "苹果公司",
+      "industry": "科技",
+      "founded": 1976,
+      "headquarters": "美国加利福尼亚州",
+      "revenue": 383.28
+    },
+    {
+      "label": "Company",
+      "name": "微软公司",
+      "industry": "科技",
+      "founded": 1975,
+      "headquarters": "美国华盛顿州",
+      "revenue": 168.09
+    },
+    {
+      "label": "Company",
+      "name": "谷歌公司",
+      "industry": "科技",
+      "founded": 1998,
+      "headquarters": "美国加利福尼亚州",
+      "revenue": 182.53
+    },
+    {
+      "label": "Company",
+      "name": "特斯拉公司",
+      "industry": "汽车",
+      "founded": 2003,
+      "headquarters": "美国加利福尼亚州",
+      "revenue": 31.54
+    },
+    {
+      "label": "Company",
+      "name": "亚马逊公司",
+      "industry": "电子商务",
+      "founded": 1994,
+      "headquarters": "美国华盛顿州",
+      "revenue": 386.06
+    },
+    {
+      "label": "Product",
+      "name": "iPhone",
+      "category": "智能手机",
+      "release_year": 2007,
+      "price": 999
+    },
+    {
+      "label": "Product",
+      "name": "iPad",
+      "category": "平板电脑",
+      "release_year": 2010,
+      "price": 499
+    },
+    {
+      "label": "Product",
+      "name": "Windows",
+      "category": "操作系统",
+      "release_year": 1985,
+      "price": 199
+    },
+    {
+      "label": "Product",
+      "name": "Model 3",
+      "category": "电动汽车",
+      "release_year": 2017,
+      "price": 39900
+    },
+    {
+      "label": "Person",
+      "name": "史蒂夫·乔布斯",
+      "role": "创始人",
+      "birth_year": 1955
+    },
+    {
+      "label": "Person",
+      "name": "比尔·盖茨",
+      "role": "创始人",
+      "birth_year": 1955
+    },
+    {
+      "label": "Person",
+      "name": "埃隆·马斯克",
+      "role": "CEO",
+      "birth_year": 1971
+    }
+  ],
+  "relationships": [
+    {
+      "start_label": "Company",
+      "start_property": "name",
+      "start_value": "苹果公司",
+      "type": "PRODUCES",
+      "end_label": "Product",
+      "end_property": "name",
+      "end_value": "iPhone",
+      "properties": {
+        "since": 2007,
+        "sales": 2.2
+      }
+    },
+    {
+      "start_label": "Company",
+      "start_property": "name",
+      "start_value": "苹果公司",
+      "type": "PRODUCES",
+      "end_label": "Product",
+      "end_property": "name",
+      "end_value": "iPad",
+      "properties": {
+        "since": 2010,
+        "sales": 0.5
+      }
+    },
+    {
+      "start_label": "Company",
+      "start_property": "name",
+      "start_value": "微软公司",
+      "type": "PRODUCES",
+      "end_label": "Product",
+      "end_property": "name",
+      "end_value": "Windows",
+      "properties": {
+        "since": 1985,
+        "users": 1.3
+      }
+    },
+    {
+      "start_label": "Company",
+      "start_property": "name",
+      "start_value": "特斯拉公司",
+      "type": "PRODUCES",
+      "end_label": "Product",
+      "end_property": "name",
+      "end_value": "Model 3",
+      "properties": {
+        "since": 2017,
+        "sales": 0.5
+      }
+    },
+    {
+      "start_label": "Person",
+      "start_property": "name",
+      "start_value": "史蒂夫·乔布斯",
+      "type": "FOUNDED",
+      "end_label": "Company",
+      "end_property": "name",
+      "end_value": "苹果公司",
+      "properties": {
+        "year": 1976
+      }
+    },
+    {
+      "start_label": "Person",
+      "start_property": "name",
+      "start_value": "比尔·盖茨",
+      "type": "FOUNDED",
+      "end_label": "Company",
+      "end_property": "name",
+      "end_value": "微软公司",
+      "properties": {
+        "year": 1975
+      }
+    },
+    {
+      "start_label": "Person",
+      "start_property": "name",
+      "start_value": "埃隆·马斯克",
+      "type": "RUNS",
+      "end_label": "Company",
+      "end_property": "name",
+      "end_value": "特斯拉公司",
+      "properties": {
+        "since": 2008
+      }
+    },
+    {
+      "start_label": "Company",
+      "start_property": "name",
+      "start_value": "苹果公司",
+      "type": "COMPETES_WITH",
+      "end_label": "Company",
+      "end_property": "name",
+      "end_value": "微软公司",
+      "properties": {
+        "field": "操作系统"
+      }
+    },
+    {
+      "start_label": "Company",
+      "start_property": "name",
+      "start_value": "苹果公司",
+      "type": "COMPETES_WITH",
+      "end_label": "Company",
+      "end_property": "name",
+      "end_value": "谷歌公司",
+      "properties": {
+        "field": "移动操作系统"
+      }
+    },
+    {
+      "start_label": "Company",
+      "start_property": "name",
+      "start_value": "谷歌公司",
+      "type": "INVESTS_IN",
+      "end_label": "Company",
+      "end_property": "name",
+      "end_value": "特斯拉公司",
+      "properties": {
+        "amount": 1.5,
+        "year": 2010
+      }
+    }
+  ]
+}

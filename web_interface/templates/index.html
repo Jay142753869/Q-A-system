@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block title %}知识图谱问答系统 - 首页{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <!-- 系统介绍卡片 -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <h3>欢迎使用知识图谱问答系统</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4>系统概述</h4>
+                        <p class="text-muted mb-4">
+                            本系统基于知识图谱和深度学习技术，为用户提供智能问答服务。通过先进的自然语言处理和图数据库技术，
+                            系统能够理解用户查询并提供准确、相关的回答。
+                        </p>
+                        
+                        <h4>核心功能</h4>
+                        <ul class="list-group mb-4">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>🔍 智能文本预处理</span>
+                                <span class="badge bg-primary rounded-pill">AC自动机 + BERT</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>🧠 知识图谱存储</span>
+                                <span class="badge bg-primary rounded-pill">Neo4j</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>🔗 内推问答</span>
+                                <span class="badge bg-primary rounded-pill">知识补全</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>🔮 外推问答</span>
+                                <span class="badge bg-primary rounded-pill">趋势预测</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h4>系统架构</h4>
+                        <div class="mb-4 p-3 bg-light rounded">
+                            <h5 class="text-primary">1. 预处理模块</h5>
+                            <p>使用AC自动机进行文本匹配，通过BERT模型获取嵌入表示，实现实体和关系的链接。</p>
+                            
+                            <h5 class="text-primary">2. 问答模块</h5>
+                            <p>基于Neo4j数据库，支持内推和外推两种查询模式，各返回前五预测结果。</p>
+                            
+                            <h5 class="text-primary">3. 可视化界面</h5>
+                            <p>使用Flask框架开发，提供直观友好的用户交互界面。</p>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h4>快速开始</h4>
+                            <div class="d-grid gap-2">
+                                <a href="/interpolation" class="btn btn-primary">
+                                    <i class="bi bi-search"></i> 开始内推问答
+                                </a>
+                                <a href="/extrapolation" class="btn btn-secondary">
+                                    <i class="bi bi-lightbulb"></i> 开始外推问答
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 系统特性卡片 -->
+        <div class="card mt-5 fade-in">
+            <div class="card-header">
+                <h3>系统特性</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="p-4 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg h-100">
+                            <h5 class="text-center text-primary mb-3">准确率</h5>
+                            <p class="text-center">
+                                系统使用预训练的BERT模型和图神经网络，提高实体识别和关系预测的准确率。
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-4 bg-gradient-to-br from-green-50 to-teal-50 rounded-lg h-100">
+                            <h5 class="text-center text-primary mb-3">灵活性</h5>
+                            <p class="text-center">
+                                支持多种查询模式，包括实体-关系预测、关系-目标实体预测等，满足不同查询需求。
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-4 bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg h-100">
+                            <h5 class="text-center text-primary mb-3">可扩展性</h5>
+                            <p class="text-center">
+                                模块化设计使系统易于扩展，可根据需求添加新的实体类型、关系类型和预测模型。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 使用说明卡片 -->
+        <div class="card mt-5 fade-in">
+            <div class="card-header">
+                <h3>使用说明</h3>
+            </div>
+            <div class="card-body">
+                <div class="accordion" id="usageAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                                内推问答使用方法
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse show">
+                            <div class="accordion-body">
+                                <p>内推问答用于知识图谱补全，支持三种查询模式：</p>
+                                <ol>
+                                    <li><strong>已知两个实体，预测关系：</strong>输入两个实体名称，系统将预测它们之间可能存在的关系。</li>
+                                    <li><strong>已知一个实体和关系，预测另一个实体：</strong>输入实体和关系类型，系统将预测可能的目标实体。</li>
+                                    <li><strong>已知关系和目标实体，预测源实体：</strong>输入关系类型和目标实体，系统将预测可能的源实体。</li>
+                                </ol>
+                                <p>例如：输入「苹果公司」和「iPhone」，系统可能返回「生产」关系。</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                                外推问答使用方法
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                <p>外推问答用于预测未来可能发生的关系：</p>
+                                <ol>
+                                    <li>输入一个实体名称</li>
+                                    <li>选择预测的未来年数（默认为5年）</li>
+                                    <li>系统将返回该实体在未来可能建立的关系</li>
+                                </ol>
+                                <p>例如：输入「苹果公司」并选择未来5年，系统可能预测它与某家公司的合作关系。</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">
+                                结果解读
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                <p>系统返回的结果包含以下信息：</p>
+                                <ul>
+                                    <li><strong>预测内容：</strong>预测的实体、关系或未来关系</li>
+                                    <li><strong>置信度：</strong>预测结果的可靠性评分（0-1之间）</li>
+                                    <li><strong>理由：</strong>预测的依据说明</li>
+                                </ul>
+                                <p>置信度越高，表示预测结果越可靠。系统将返回置信度最高的前5个结果。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // 添加页面加载动画效果
+    document.addEventListener('DOMContentLoaded', function() {
+        const fadeElements = document.querySelectorAll('.fade-in');
+        fadeElements.forEach((element, index) => {
+            setTimeout(() => {
+                element.style.opacity = '1';
+                element.style.transform = 'translateY(0)';
+            }, 100 * index);
+        });
+    });
+</script>
+{% endblock %}
