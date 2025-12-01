@@ -162,22 +162,33 @@
 
 {% block scripts %}
 <script>
+    // 优化后的JavaScript代码
     document.addEventListener('DOMContentLoaded', function() {
         // 表单验证
         const form = document.getElementById('extrapolation-form');
-        form.addEventListener('submit', function(event) {
-            const entity = document.getElementById('entity').value.trim();
-            if (!entity) {
-                event.preventDefault();
-                alert('请输入实体名称');
-            }
-        });
+        if (form) {
+            form.addEventListener('submit', function(event) {
+                const entityInput = document.getElementById('entity');
+                if (entityInput && !entityInput.value.trim()) {
+                    event.preventDefault();
+                    alert('请输入实体名称');
+                }
+            });
+        }
         
-        // 更新年数滑块显示
-        window.updateYearValue = function(value) {
-            document.getElementById('future_years_value').textContent = value + ' 年';
-            document.getElementById('future_years').value = value;
+        // 更新年数滑块显示 - 使用const代替全局函数
+        const updateYearValue = function(value) {
+            const yearsValueElement = document.getElementById('future_years_value');
+            const yearsInputElement = document.getElementById('future_years');
+            
+            if (yearsValueElement && yearsInputElement) {
+                yearsValueElement.textContent = value + ' 年';
+                yearsInputElement.value = value;
+            }
         };
+        
+        // 将函数暴露给全局以支持HTML中的oninput属性
+        window.updateYearValue = updateYearValue;
         
         // 示例应用功能
         const exampleButtons = document.querySelectorAll('.apply-example');
@@ -186,9 +197,18 @@
                 const entity = this.dataset.entity || '';
                 const years = this.dataset.years || '5';
                 
-                document.getElementById('entity').value = entity;
-                document.getElementById('future_years_range').value = years;
-                updateYearValue(years);
+                // 安全获取DOM元素
+                const entityInput = document.getElementById('entity');
+                const yearsRangeInput = document.getElementById('future_years_range');
+                
+                if (entityInput) {
+                    entityInput.value = entity;
+                }
+                
+                if (yearsRangeInput) {
+                    yearsRangeInput.value = years;
+                    updateYearValue(years);
+                }
             });
         });
     });

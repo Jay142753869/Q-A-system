@@ -157,10 +157,10 @@
 
 {% block scripts %}
 <script>
+    // 优化后的JavaScript代码
     document.addEventListener('DOMContentLoaded', function() {
-        // 表单验证
-        const form = document.getElementById('interpolation-form');
-        form.addEventListener('submit', function(event) {
+        // 表单验证函数
+        function validateForm() {
             const entity1 = document.getElementById('entity1').value.trim();
             const relationship = document.getElementById('relationship').value.trim();
             const entity2 = document.getElementById('entity2').value.trim();
@@ -170,23 +170,34 @@
             const hasEntity1AndRel = entity1 && relationship && !entity2;
             const hasRelAndEntity2 = relationship && entity2 && !entity1;
             
-            if (!(hasEntity1AndEntity2 || hasEntity1AndRel || hasRelAndEntity2)) {
-                event.preventDefault();
-                alert('请填写以下组合之一：\n1. 实体1和实体2\n2. 实体1和关系\n3. 关系和实体2');
-            }
-        });
+            return hasEntity1AndEntity2 || hasEntity1AndRel || hasRelAndEntity2;
+        }
+        
+        // 表单提交事件处理
+        const form = document.getElementById('interpolation-form');
+        if (form) {
+            form.addEventListener('submit', function(event) {
+                if (!validateForm()) {
+                    event.preventDefault();
+                    alert('请填写以下组合之一：\n1. 实体1和实体2\n2. 实体1和关系\n3. 关系和实体2');
+                }
+            });
+        }
         
         // 示例应用功能
         const exampleButtons = document.querySelectorAll('.apply-example');
         exampleButtons.forEach(button => {
             button.addEventListener('click', function() {
-                const entity1 = this.dataset.entity1 || '';
-                const relationship = this.dataset.relationship || '';
-                const entity2 = this.dataset.entity2 || '';
+                // 安全获取DOM元素
+                const entity1Input = document.getElementById('entity1');
+                const relationshipInput = document.getElementById('relationship');
+                const entity2Input = document.getElementById('entity2');
                 
-                document.getElementById('entity1').value = entity1;
-                document.getElementById('relationship').value = relationship;
-                document.getElementById('entity2').value = entity2;
+                if (entity1Input && relationshipInput && entity2Input) {
+                    entity1Input.value = this.dataset.entity1 || '';
+                    relationshipInput.value = this.dataset.relationship || '';
+                    entity2Input.value = this.dataset.entity2 || '';
+                }
             });
         });
     });

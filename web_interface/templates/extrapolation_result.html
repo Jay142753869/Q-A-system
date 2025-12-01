@@ -87,7 +87,7 @@
             </div>
             <div class="card-body">
                 {% if relationship_stats %}
-                <div class="chart-container">
+                <div class="chart-container" style="height: 300px;">
                     <canvas id="relationshipChart"></canvas>
                 </div>
                 {% else %}
@@ -165,72 +165,181 @@
 </div>
 {% endblock %}
 
+{% block styles %}
+<style>
+    /* 预测卡片置信度样式 */
+    .prediction-card {
+        border: 1px solid #e9ecef;
+        border-radius: 0.375rem;
+        padding: 0.75rem;
+        margin-bottom: 0.75rem;
+        transition: all 0.3s ease;
+    }
+    
+    /* 置信度样式 */
+    .confidence-high {
+        border-left: 4px solid #28a745;
+        background-color: #f8fff8;
+    }
+    
+    .confidence-medium {
+        border-left: 4px solid #ffc107;
+        background-color: #fffdf0;
+    }
+    
+    .confidence-low {
+        border-left: 4px solid #dc3545;
+        background-color: #fff8f8;
+    }
+    
+    /* 预测头部样式 */
+    .prediction-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .relationship-type {
+        font-weight: bold;
+        color: #495057;
+    }
+    
+    .confidence-badge {
+        font-size: 0.875rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        background-color: #e9ecef;
+    }
+    
+    /* 预测内容样式 */
+    .prediction-entities {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .entity-source,
+    .entity-target {
+        font-weight: bold;
+        color: #007bff;
+    }
+    
+    /* 时间线样式优化 */
+    .timeline {
+        position: relative;
+    }
+    
+    .timeline-item {
+        position: relative;
+        padding-left: 2rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .timeline-marker {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: #007bff;
+    }
+    
+    .timeline-item:not(:last-child) .timeline-marker::after {
+        content: '';
+        position: absolute;
+        left: 5px;
+        top: 12px;
+        width: 2px;
+        height: calc(100% + 1.5rem);
+        background-color: #dee2e6;
+    }
+</style>
+{% endblock %}
+
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // 关系类型分布图表
         {% if relationship_stats %}
-        const ctx = document.getElementById('relationshipChart').getContext('2d');
-        const relationshipChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: {{ relationship_stats.labels|tojson }},
-                datasets: [{
-                    label: '预测次数',
-                    data: {{ relationship_stats.data|tojson }},
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.6)',
-                        'rgba(54, 162, 235, 0.6)',
-                        'rgba(255, 206, 86, 0.6)',
-                        'rgba(75, 192, 192, 0.6)',
-                        'rgba(153, 102, 255, 0.6)',
-                        'rgba(255, 159, 64, 0.6)'
-                    ],
-                    borderColor: [
-                        'rgba(255, 99, 132, 1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(153, 102, 255, 1)',
-                        'rgba(255, 159, 64, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            precision: 0
+            const ctx = document.getElementById('relationshipChart');
+            if (ctx) {
+                const chartCtx = ctx.getContext('2d');
+                
+                // 图表配置
+                const chartConfig = {
+                    type: 'bar',
+                    data: {
+                        labels: {{ relationship_stats.labels|tojson|safe }},
+                        datasets: [{
+                            label: '预测次数',
+                            data: {{ relationship_stats.data|tojson|safe }},
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.6)',
+                                'rgba(54, 162, 235, 0.6)',
+                                'rgba(255, 206, 86, 0.6)',
+                                'rgba(75, 192, 192, 0.6)',
+                                'rgba(153, 102, 255, 0.6)',
+                                'rgba(255, 159, 64, 0.6)'
+                            ],
+                            borderColor: [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
                         }
                     }
-                },
-                plugins: {
-                    legend: {
-                        display: false
-                    }
+                };
+                
+                // 初始化图表
+                try {
+                    const relationshipChart = new Chart(chartCtx, chartConfig);
+                } catch (error) {
+                    console.error('图表初始化失败:', error);
                 }
             }
-        });
         {% endif %}
         
         // 为预测卡片添加置信度相关样式
         const predictionCards = document.querySelectorAll('.prediction-card');
-        predictionCards.forEach(card => {
-            const confidence = parseFloat(card.dataset.confidence);
-            let confidenceClass = 'confidence-low';
-            
-            if (confidence >= 0.7) {
-                confidenceClass = 'confidence-high';
-            } else if (confidence >= 0.4) {
-                confidenceClass = 'confidence-medium';
+        predictionCards.forEach(function(card) {
+            const confidenceData = card.dataset.confidence;
+            if (confidenceData) {
+                const confidence = parseFloat(confidenceData);
+                let confidenceClass = 'confidence-low';
+                
+                if (confidence >= 0.7) {
+                    confidenceClass = 'confidence-high';
+                } else if (confidence >= 0.4) {
+                    confidenceClass = 'confidence-medium';
+                }
+                
+                card.classList.add(confidenceClass);
             }
-            
-            card.classList.add(confidenceClass);
         });
     });
 </script>
