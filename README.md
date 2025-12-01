@@ -43,7 +43,7 @@
 
 ## 技术栈
 
-- **编程语言**：Python 3.8+
+- **编程语言**：Python 3.8~3.11
 - **Web框架**：Flask
 - **自然语言处理**：jieba, Transformers (BERT)
 - **知识图谱**：Neo4j
