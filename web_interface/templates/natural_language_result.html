@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block title %}问答结果 - 智能问答系统{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg">
+        <div class="card-header bg-success text-white">
+            <h1 class="text-center">问答结果</h1>
+        </div>
+        <div class="card-body p-5">
+            <!-- 用户问题 -->
+            <div class="mb-5 bg-light p-4 rounded-lg">
+                <h4 class="text-primary">您的问题：</h4>
+                <p class="text-lg font-medium">{{ question }}</p>
+                
+                <h4 class="text-primary mt-4">问题解析：</h4>
+                <div class="bg-white p-3 rounded border border-info">
+                    <p><strong>问题类型：</strong>
+                        {% if parsed_question.type == 'entity_entity' %}实体-实体关系查询
+                        {% elif parsed_question.type == 'entity_relationship' %}实体-关系查询
+                        {% elif parsed_question.type == 'relationship_entity' %}关系-实体查询
+                        {% elif parsed_question.type == 'extrapolation' %}预测查询
+                        {% else %}未知类型
+                        {% endif %}
+                    </p>
+                    {% if parsed_question.entity1 %}<p><strong>实体1：</strong>{{ parsed_question.entity1 }}</p>{% endif %}
+                    {% if parsed_question.relationship %}<p><strong>关系：</strong>{{ parsed_question.relationship }}</p>{% endif %}
+                    {% if parsed_question.entity2 %}<p><strong>实体2：</strong>{{ parsed_question.entity2 }}</p>{% endif %}
+                </div>
+            </div>
+            
+            <!-- 结果列表 -->
+            <div class="mt-5">
+                <h3 class="text-primary mb-4">
+                    <i class="fas fa-lightbulb"></i> 预测结果
+                    <span class="badge badge-primary ml-2">{{ results|length }} 条</span>
+                </h3>
+                
+                {% if results %}
+                <div class="list-group">
+                    {% for result in results %}
+                    <div class="list-group-item list-group-item-action mb-3 p-4 border border-light rounded-lg shadow-sm">
+                        <!-- 根据不同的查询类型显示不同的结果 -->
+                        {% if parsed_question.type == 'entity_entity' %}
+                        <!-- 实体-实体关系查询结果 -->
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5 class="mb-0">
+                                    <span class="text-primary font-weight-bold">关系：</span>
+                                    <span class="text-success">{{ result.relationship }}</span>
+                                </h5>
+                                <p class="text-muted mt-1">{{ result.explanation }}</p>
+                            </div>
+                            <span class="badge badge-info align-self-center">
+                                置信度: {{ result.confidence }}
+                            </span>
+                        </div>
+                        
+                        {% elif parsed_question.type == 'entity_relationship' %}
+                        <!-- 实体-关系查询结果 -->
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5 class="mb-0">
+                                    <span class="text-primary font-weight-bold">实体：</span>
+                                    <span class="text-success">{{ result.entity }}</span>
+                                </h5>
+                                <p class="text-muted mt-1">{{ result.explanation }}</p>
+                            </div>
+                            <span class="badge badge-info align-self-center">
+                                置信度: {{ result.confidence }}
+                            </span>
+                        </div>
+                        
+                        {% elif parsed_question.type == 'relationship_entity' %}
+                        <!-- 关系-实体查询结果 -->
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5 class="mb-0">
+                                    <span class="text-primary font-weight-bold">实体：</span>
+                                    <span class="text-success">{{ result.entity }}</span>
+                                </h5>
+                                <p class="text-muted mt-1">{{ result.explanation }}</p>
+                            </div>
+                            <span class="badge badge-info align-self-center">
+                                置信度: {{ result.confidence }}
+                            </span>
+                        </div>
+                        
+                        {% elif parsed_question.type == 'extrapolation' %}
+                        <!-- 预测查询结果 -->
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5 class="mb-0">
+                                    <span class="text-primary font-weight-bold">实体：</span>
+                                    <span class="text-success">{{ result.entity }}</span>
+                                    <span class="mx-2">→</span>
+                                    <span class="text-primary font-weight-bold">关系：</span>
+                                    <span class="text-success">{{ result.relationship }}</span>
+                                </h5>
+                                <p class="text-muted mt-1">{{ result.explanation }}</p>
+                            </div>
+                            <span class="badge badge-info align-self-center">
+                                置信度: {{ result.confidence }}
+                            </span>
+                        </div>
+                        
+                        {% else %}
+                        <!-- 未知类型结果 -->
+                        <p>{{ result.text }}</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                {% else %}
+                <div class="alert alert-warning" role="alert">
+                    <i class="fas fa-exclamation-triangle"></i> 没有找到匹配的结果，请尝试调整问题表述。
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- 操作按钮 -->
+            <div class="mt-5 text-center">
+                <a href="/natural_language" class="btn btn-primary btn-lg mx-2">
+                    <i class="fas fa-undo-alt"></i> 提出新问题
+                </a>
+                <a href="/" class="btn btn-secondary btn-lg mx-2">
+                    <i class="fas fa-home"></i> 返回首页
+                </a>
+            </div>
+        </div>
+        
+        <div class="card-footer bg-light text-center">
+            <p class="text-muted">结果基于知识图谱预测生成，仅供参考</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
